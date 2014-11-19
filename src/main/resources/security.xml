@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bean:beans xmlns:bean="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.springframework.org/schema/security"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+	
+	<!-- login.jsp不需要权限 -->
+	<http pattern="/login.jsp*" security="none"/>
+	
+	<!-- access-denied-page 指定403页面 -->
+    <http auto-config="true" access-denied-page="/accessDenied.jsp">
+        <!-- 注销指定页面-->
+        <logout logout-success-url="/login.jsp"/>
+        <!-- 指定登陆页面 -->
+    	<form-login login-page="/login.jsp"/>
+    	<!-- 访问admin页面需要 ROLE_ADMIN-->
+    	<intercept-url pattern="/admin.jsp*" access="ROLE_ADMIN"/>
+    	<!-- 访问index页面需要 ROLE_ADMIN或者ROLE_USER-->
+    	<intercept-url pattern="/index.jsp*" access="ROLE_USER,ROLE_ADMIN"/>
+    	<!-- 访问任意页面需要 ROLE_USER-->
+  		<intercept-url pattern="/**" access="ROLE_USER"/>
+  		
+  		<!-- session超时跳转页面 -->
+  		<session-management invalid-session-url="/sessiontimeout.jsp"></session-management>
+    </http>
+    <authentication-manager>
+        <authentication-provider user-service-ref="userDetailsService">
+            <!-- 自定义密码加密方式 -->
+            <password-encoder ref="myPasswordEncode"></password-encoder>
+        </authentication-provider>
+    </authentication-manager>
+    
+    <!-- 自己的密码加密类  需要继承org.springframework.security.authentication.encoding.MessageDigestPasswordEncoder;-->
+    <bean:bean id="myPasswordEncode" class="com.haedrig.security.PasswordEncode">
+          <!-- encode 构造参数  -->
+          <bean:constructor-arg name="encode" value="md5"></bean:constructor-arg>
+    </bean:bean>
+
+</bean:beans>
